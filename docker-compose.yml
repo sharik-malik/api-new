@@ -1,0 +1,46 @@
+version: '3'
+services:
+  api:
+    container_name: adres_api
+    build: .
+    command: python manage.py runserver 0.0.0:9000
+    restart: always
+    volumes:
+      - .:/app
+      - /etc/ssl/certs/payment-gateway/payment_cert.pem:/etc/ssl/certs/payment-gateway/payment_cert.pem
+      - /etc/ssl/certs/payment-gateway/payment_key.pem:/etc/ssl/certs/payment-gateway/payment_key.pem
+    ports:
+      - "9000:9000"
+    networks:
+      # - frontend 
+      adres_auction_ntwk:
+        ipv4_address: 178.28.0.16
+
+  cache:
+    container_name: adres_api_redis
+    image: redis:7.2
+    command: redis-server
+    restart: always
+    ports:
+      - '7479:6379'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - adres_auction_ntwk
+
+networks:
+  adres_auction_ntwk:
+    name: adres_auction_network
+    driver: bridge
+    # external: true  
+    ipam:
+     config:
+       - subnet: 178.28.0.0/16
+         gateway: 178.28.0.1
+
+# networks:
+#   gsa_ntwk:
+#     # Use a custom driver
+#     name: gsa_network
+#     driver: bridge
+#     external: true   
